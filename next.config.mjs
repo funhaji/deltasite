@@ -13,6 +13,22 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      // Redirect www to non-www
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.aligostar.com',
+          },
+        ],
+        destination: 'https://aligostar.com/:path*',
+        permanent: true,
+      },
+    ];
+  },
 }
 
 export default nextConfig
