@@ -6,7 +6,11 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const content = await fetchSiteContent();
-    return NextResponse.json(content);
+    return NextResponse.json(content, {
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   } catch (e) {
     console.error(e);
     return NextResponse.json(

@@ -22,24 +22,27 @@ export function SiteContentProvider({
   const refetch = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/content");
+      const res = await fetch("/api/content", { cache: "no-store" });
+      if (!res.ok) throw new Error("Content fetch failed");
       const data = await res.json();
       setContent(data);
     } catch {
-      setContent(null);
+      // Keep existing content on fetch failure (e.g. server-passed initialContent)
+      setContent((prev) => prev);
     } finally {
       setLoading(false);
     }
   }, []);
 
+  // Use server-passed content for first paint, then always refetch from API so main site stays in sync with admin
   useEffect(() => {
     if (initialContent) {
       setContent(initialContent);
       setLoading(false);
-    } else {
-      refetch();
     }
-  }, [initialContent, refetch]);
+    // Always refetch on mount so we show latest from DB (admin changes appear immediately)
+    refetch();
+  }, [refetch]);
 
   return (
     <SiteContentContext.Provider value={{ content, loading, refetch }}>

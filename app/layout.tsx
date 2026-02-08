@@ -7,6 +7,9 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { SiteContentLayout } from "@/components/site-content-layout";
 import { fetchSiteContent } from "@/lib/supabase/content";
 
+// Ensure content is always fetched per-request, not cached at build
+export const dynamic = "force-dynamic";
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
