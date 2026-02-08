@@ -42,6 +42,15 @@ export async function POST(request: NextRequest) {
 
   if (error) {
     console.error("Supabase storage upload error:", error);
+    // More helpful error message for missing bucket
+    if (error.message?.includes("not found") || error.statusCode === "404") {
+      return NextResponse.json(
+        {
+          error: `Bucket "${BUCKET}" not found. Please create a bucket named "${BUCKET}" in Supabase Storage (Dashboard → Storage → New bucket). Make it PUBLIC so images can be accessed.`,
+        },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
       { error: error.message || "Upload failed" },
       { status: 500 }
