@@ -15,16 +15,16 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      // Redirect www to non-www
+      // Redirect non-www to www
       {
         source: '/:path*',
         has: [
           {
             type: 'host',
-            value: 'www.aligostar.com',
+            value: 'aligostar.com',
           },
         ],
-        destination: 'https://aligostar.com/:path*',
+        destination: 'https://www.aligostar.com/:path*',
         permanent: true,
       },
     ];
