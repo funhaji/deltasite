@@ -5,18 +5,14 @@ import Image from "next/image";
 import { AnimatedSection } from "./animated-section";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const galleryImages = [
-  { src: "/images/gallery-1.jpg", alt: "پروژه آپارتمانی" },
-  { src: "/images/gallery-2.jpg", alt: "طراحی داخلی لوکس" },
-  { src: "/images/gallery-3.jpg", alt: "ساختمان تجاری مدرن" },
-  { src: "/images/gallery-4.jpg", alt: "فعالیت ساخت و ساز" },
-  { src: "/images/gallery-5.jpg", alt: "پروژه ویلایی" },
-  { src: "/images/gallery-6.jpg", alt: "نقشه معماری" },
-];
+import { useSiteContent } from "@/lib/site-content-context";
 
 export function GallerySection() {
+  const { content } = useSiteContent();
+  const galleryImages = content?.gallery ?? [];
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
+
+  if (galleryImages.length === 0) return null;
 
   return (
     <>
@@ -25,20 +21,18 @@ export function GallerySection() {
           <AnimatedSection animation="fade-up" className="text-center mb-16">
             <div className="flex items-center justify-center gap-3 mb-4">
               <span className="h-px w-10 bg-primary" />
-              <span className="text-sm font-semibold text-primary">
-                {"کار ویژه"}
-              </span>
+              <span className="text-sm font-semibold text-primary">کار ویژه</span>
               <span className="h-px w-10 bg-primary" />
             </div>
             <h2 className="text-2xl md:text-4xl font-extrabold text-foreground text-balance">
-              {"کاوش آنچه انجام دادیم"}
+              کاوش آنچه انجام دادیم
             </h2>
           </AnimatedSection>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             {galleryImages.map((img, idx) => (
               <AnimatedSection
-                key={img.src}
+                key={img.id || idx}
                 animation="scale-in"
                 delay={idx * 100}
               >
@@ -48,7 +42,7 @@ export function GallerySection() {
                   className="relative aspect-[4/3] w-full overflow-hidden rounded-lg group cursor-pointer"
                 >
                   <Image
-                    src={img.src || "/placeholder.svg"}
+                    src={img.image_url || "/placeholder.svg"}
                     alt={img.alt}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -87,7 +81,7 @@ export function GallerySection() {
             onClick={(e) => e.stopPropagation()}
           >
             <Image
-              src={galleryImages[selectedImage].src || "/placeholder.svg"}
+              src={galleryImages[selectedImage].image_url || "/placeholder.svg"}
               alt={galleryImages[selectedImage].alt}
               fill
               className="object-contain rounded-lg"

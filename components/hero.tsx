@@ -4,35 +4,21 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-const slides = [
-  {
-    title: "افراد با استعداد و ابتکار عمل",
-    description:
-      "به دنبال راه حل ساده برای ساخت و ساز میگردید! ما این راه حل را به شما ارائه میدهیم",
-  },
-  {
-    title: "پایداری و ایجاد جمعی",
-    description:
-      "پروژه های ما در خدمت منافع عمومی است و به دلیل اینکه اغلب در شهرها و مناطق تغییرات اساسی ایجاد می کنند",
-  },
-  {
-    title: "ما هدف ها و پیش بینی های دقیقی داریم",
-    description:
-      "ما همچنین زیرساخت های حیاتی و پروژه های نفت و گاز ، از جمله نیروگاه ها و پروژه های دریایی را پیش بینی کرده ایم",
-  },
-];
+import { useSiteContent } from "@/lib/site-content-context";
 
 export function Hero() {
+  const { content } = useSiteContent();
+  const slides = content?.heroSlides?.length ? content.heroSlides : [];
   const [activeSlide, setActiveSlide] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
+    if (slides.length === 0) return;
     const timer = setInterval(() => {
       goToSlide((activeSlide + 1) % slides.length);
     }, 6000);
     return () => clearInterval(timer);
-  }, [activeSlide]);
+  }, [activeSlide, slides.length]);
 
   function goToSlide(index: number) {
     if (isAnimating) return;
@@ -41,12 +27,23 @@ export function Hero() {
     setTimeout(() => setIsAnimating(false), 800);
   }
 
+  if (slides.length === 0) {
+    return (
+      <section className="relative h-[60vh] md:h-[85vh] overflow-hidden bg-muted flex items-center justify-center">
+        <p className="text-muted-foreground">محتوای هیرو موجود نیست.</p>
+      </section>
+    );
+  }
+
+  const currentSlide = slides[activeSlide];
+  const heroImage = currentSlide?.image_url || "/placeholder.svg";
+
   return (
     <section className="relative h-[60vh] md:h-[85vh] overflow-hidden">
       {/* Background Image */}
       <Image
-        src="/images/hero-construction.jpg"
-        alt="ساخت و ساز مدرن"
+        src={heroImage}
+        alt={currentSlide.title}
         fill
         className="object-cover"
         priority
@@ -58,7 +55,7 @@ export function Hero() {
         <div className="mx-auto max-w-7xl px-6 w-full">
           {slides.map((slide, idx) => (
             <div
-              key={slide.title}
+              key={slide.id || idx}
               className={cn(
                 "absolute transition-all duration-700 max-w-xl",
                 idx === activeSlide
@@ -73,10 +70,10 @@ export function Hero() {
                 {slide.description}
               </p>
               <a
-                href="#services"
+                href={slide.cta_link || "#services"}
                 className="mt-6 md:mt-8 inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 font-semibold text-sm rounded-md hover:brightness-110 transition-all duration-300 hover:gap-3"
               >
-                <span>{"مشاهده خدمات"}</span>
+                <span>{slide.cta_text || "مشاهده خدمات"}</span>
                 <ChevronLeft className="h-4 w-4" />
               </a>
             </div>

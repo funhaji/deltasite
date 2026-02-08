@@ -4,8 +4,11 @@ import { useState, type FormEvent } from "react";
 import { AnimatedSection } from "./animated-section";
 import { Send, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSiteContent } from "@/lib/site-content-context";
 
 export function ContactSection() {
+  const { content } = useSiteContent();
+  const contact = content?.contact;
   const [submitted, setSubmitted] = useState(false);
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -14,6 +17,8 @@ export function ContactSection() {
     setTimeout(() => setSubmitted(false), 4000);
   }
 
+  if (!contact) return null;
+
   return (
     <section id="contact" className="py-20 md:py-28">
       <div className="mx-auto max-w-2xl px-6">
@@ -21,17 +26,15 @@ export function ContactSection() {
           <div className="flex items-center justify-center gap-3 mb-4">
             <span className="h-px w-10 bg-primary" />
             <span className="text-sm font-semibold text-primary">
-              {"ارتباط با ما"}
+              {contact.tagline}
             </span>
             <span className="h-px w-10 bg-primary" />
           </div>
           <h2 className="text-2xl md:text-4xl font-extrabold text-foreground text-balance">
-            {"درخواست وقت"}
+            {contact.heading}
           </h2>
           <p className="mt-4 text-muted-foreground text-sm leading-relaxed max-w-lg mx-auto">
-            {
-              "جهت ارتباط و یاری در رساندن خدمات بهتر به شما از طریق فرم زیر با ما تماس بگیرید"
-            }
+            {contact.subtext}
           </p>
         </AnimatedSection>
 
@@ -45,14 +48,14 @@ export function ContactSection() {
                 htmlFor="name"
                 className="block text-sm font-medium text-foreground mb-2"
               >
-                {"نام شما *"}
+                {contact.form_label_name}
               </label>
               <input
                 id="name"
                 type="text"
                 required
                 className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300"
-                placeholder="نام خود را وارد کنید"
+                placeholder={contact.form_placeholder_name}
               />
             </div>
 
@@ -61,7 +64,7 @@ export function ContactSection() {
                 htmlFor="email"
                 className="block text-sm font-medium text-foreground mb-2"
               >
-                {"ایمیل شما *"}
+                {contact.form_label_email}
               </label>
               <input
                 id="email"
@@ -69,7 +72,7 @@ export function ContactSection() {
                 required
                 dir="ltr"
                 className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 text-left"
-                placeholder="email@example.com"
+                placeholder={contact.form_placeholder_email}
               />
             </div>
 
@@ -78,13 +81,13 @@ export function ContactSection() {
                 htmlFor="message"
                 className="block text-sm font-medium text-foreground mb-2"
               >
-                {"پیام شما"}
+                {contact.form_label_message}
               </label>
               <textarea
                 id="message"
                 rows={5}
                 className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 resize-none"
-                placeholder="پیام خود را بنویسید..."
+                placeholder={contact.form_placeholder_message}
               />
             </div>
 
@@ -100,12 +103,12 @@ export function ContactSection() {
               {submitted ? (
                 <>
                   <CheckCircle2 className="h-4 w-4" />
-                  {"ارسال شد!"}
+                  {contact.submitted_text}
                 </>
               ) : (
                 <>
                   <Send className="h-4 w-4" />
-                  {"ارسال پیام"}
+                  {contact.submit_text}
                 </>
               )}
             </button>
