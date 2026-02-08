@@ -139,6 +139,15 @@ CREATE TABLE IF NOT EXISTS footer_links_d9k2 (
   sort_order INT NOT NULL DEFAULT 0
 );
 
+-- Contact form submissions (درخواست وقت)
+CREATE TABLE IF NOT EXISTS contact_messages_d9k2 (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  message TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Enable RLS (optional; anon can read if we use service role from API)
 ALTER TABLE site_config_d9k2 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE topbar_d9k2 ENABLE ROW LEVEL SECURITY;
@@ -152,6 +161,11 @@ ALTER TABLE cta_d9k2 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contact_d9k2 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE footer_d9k2 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE footer_links_d9k2 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contact_messages_d9k2 ENABLE ROW LEVEL SECURITY;
+
+-- Allow anyone to insert contact messages (form submission)
+CREATE POLICY "Allow public insert contact_messages_d9k2" ON contact_messages_d9k2 FOR INSERT WITH CHECK (true);
+-- No public SELECT; only service role (admin API) can read
 
 -- Public read policies (anon key can read)
 CREATE POLICY "Allow public read site_config_d9k2" ON site_config_d9k2 FOR SELECT USING (true);

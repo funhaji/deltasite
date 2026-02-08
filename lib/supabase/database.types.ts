@@ -144,6 +144,11 @@ export interface Database {
         Insert: Omit<Database["public"]["Tables"]["footer_links_d9k2"]["Row"], "id"> & { id?: number };
         Update: Partial<Database["public"]["Tables"]["footer_links_d9k2"]["Insert"]>;
       };
+      contact_messages_d9k2: {
+        Row: { id: number; name: string; email: string; message: string; created_at: string };
+        Insert: { name: string; email: string; message?: string; id?: number; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["contact_messages_d9k2"]["Insert"]>;
+      };
     };
   };
 }

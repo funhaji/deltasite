@@ -81,11 +81,21 @@ const ICON_OPTIONS = [
   "rocket",
 ];
 
+export interface ContactMessage {
+  id: number;
+  name: string;
+  email: string;
+  message: string;
+  created_at: string;
+}
+
 export default function AdminPage() {
   const router = useRouter();
   const [content, setContent] = useState<SiteContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -104,6 +114,19 @@ export default function AdminPage() {
       }
     })();
   }, [router]);
+
+  async function loadMessages() {
+    setMessagesLoading(true);
+    try {
+      const res = await fetch("/api/admin/messages");
+      if (res.ok) {
+        const data = await res.json();
+        setMessages(data);
+      }
+    } finally {
+      setMessagesLoading(false);
+    }
+  }
 
   async function save() {
     if (!content) return;
@@ -1211,6 +1234,56 @@ export default function AdminPage() {
                       </Button>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Contact messages (درخواست وقت) */}
+          <AccordionItem value="messages">
+            <AccordionTrigger onClick={loadMessages}>پیام‌های تماس (درخواست وقت)</AccordionTrigger>
+            <AccordionContent>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <span>لیست پیام‌های ارسالی از فرم تماس</span>
+                  <Button variant="outline" size="sm" onClick={loadMessages} disabled={messagesLoading}>
+                    {messagesLoading ? "در حال بارگذاری..." : "بروزرسانی"}
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {messagesLoading && messages.length === 0 ? (
+                    <p className="text-muted-foreground text-sm">در حال بارگذاری...</p>
+                  ) : messages.length === 0 ? (
+                    <p className="text-muted-foreground text-sm">هنوز پیامی ارسال نشده است.</p>
+                  ) : (
+                    <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+                      {messages.map((msg) => (
+                        <div
+                          key={msg.id}
+                          className="border rounded-lg p-4 space-y-2 bg-muted/30"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="font-semibold text-foreground">{msg.name}</span>
+                            <span className="text-xs text-muted-foreground" dir="ltr">
+                              {new Date(msg.created_at).toLocaleString("fa-IR")}
+                            </span>
+                          </div>
+                          <a
+                            href={`mailto:${msg.email}`}
+                            className="text-sm text-primary hover:underline block"
+                            dir="ltr"
+                          >
+                            {msg.email}
+                          </a>
+                          {msg.message ? (
+                            <p className="text-sm text-foreground whitespace-pre-wrap pt-1 border-t border-border mt-2">
+                              {msg.message}
+                            </p>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </AccordionContent>

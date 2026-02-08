@@ -10,11 +10,32 @@ export function ContactSection() {
   const { content } = useSiteContent();
   const contact = content?.contact;
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4000);
+    setError("");
+    const form = e.currentTarget;
+    const name = (form.elements.namedItem("name") as HTMLInputElement)?.value?.trim() ?? "";
+    const email = (form.elements.namedItem("email") as HTMLInputElement)?.value?.trim() ?? "";
+    const message = (form.elements.namedItem("message") as HTMLTextAreaElement)?.value?.trim() ?? "";
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, message }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "ارسال نشد. دوباره تلاش کنید.");
+        return;
+      }
+      setSubmitted(true);
+      form.reset();
+      setTimeout(() => setSubmitted(false), 4000);
+    } catch {
+      setError("ارسال نشد. دوباره تلاش کنید.");
+    }
   }
 
   if (!contact) return null;
@@ -43,6 +64,9 @@ export function ContactSection() {
             onSubmit={handleSubmit}
             className="bg-secondary rounded-xl p-6 md:p-10 space-y-5"
           >
+            {error && (
+              <p className="text-sm text-destructive">{error}</p>
+            )}
             <div>
               <label
                 htmlFor="name"
@@ -52,6 +76,7 @@ export function ContactSection() {
               </label>
               <input
                 id="name"
+                name="name"
                 type="text"
                 required
                 className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300"
@@ -68,6 +93,7 @@ export function ContactSection() {
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
                 required
                 dir="ltr"
@@ -85,6 +111,7 @@ export function ContactSection() {
               </label>
               <textarea
                 id="message"
+                name="message"
                 rows={5}
                 className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 resize-none"
                 placeholder={contact.form_placeholder_message}
