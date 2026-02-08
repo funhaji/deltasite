@@ -119,9 +119,21 @@ export function Footer() {
       </div>
 
       <div className="border-t border-background/10">
-        <div className="mx-auto max-w-7xl px-6 py-5">
+        <div className="mx-auto max-w-7xl px-6 py-5 space-y-2">
           <p className="text-background/40 text-xs text-center">
             {footer.copyright_text}
+          </p>
+          <p className="text-background/30 text-xs text-center">
+            این وب‌سایت توسط{" "}
+            <a
+              href="https://t.me/astrovpn_help"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary/90 hover:text-primary transition-colors"
+            >
+              آسترو تیم
+            </a>{" "}
+            ساخته شده است
           </p>
         </div>
       </div>

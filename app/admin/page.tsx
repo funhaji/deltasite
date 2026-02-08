@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { FileText, MessageSquare, ArrowRight, Trash2, PanelLeftClose } from "lucide-react";
 import type { SiteContent } from "@/lib/types/site-content";
 
 function ImageField({
@@ -96,6 +97,7 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [view, setView] = useState<"dashboard" | "content" | "messages">("dashboard");
 
   useEffect(() => {
     (async () => {
@@ -128,6 +130,21 @@ export default function AdminPage() {
     }
   }
 
+  async function deleteMessage(id: number) {
+    if (!confirm("این پیام حذف شود؟")) return;
+    try {
+      const res = await fetch(`/api/admin/messages/${id}`, { method: "DELETE" });
+      if (res.ok) setMessages((prev) => prev.filter((m) => m.id !== id));
+    } catch {
+      // ignore
+    }
+  }
+
+  // Load message count on dashboard
+  useEffect(() => {
+    if (view === "dashboard") loadMessages();
+  }, [view]);
+
   async function save() {
     if (!content) return;
     setSaving(true);
@@ -158,30 +175,170 @@ export default function AdminPage() {
   const set = setContent;
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="mx-auto max-w-3xl space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">پنل ادمین</h1>
-          <div className="flex gap-2">
-            <Link href="/">
-              <Button variant="outline">مشاهده سایت</Button>
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30">
+      {/* Sticky header */}
+      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 flex items-center justify-between h-14 gap-4">
+          <div className="flex items-center gap-3">
+            {view !== "dashboard" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setView("dashboard")}
+                className="gap-1"
+              >
+                <PanelLeftClose className="h-4 w-4" />
+                بازگشت
+              </Button>
+            )}
+            <h1 className="text-lg font-bold text-foreground">پنل مدیریت</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link href="/" target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="sm">مشاهده سایت</Button>
             </Link>
+            {view === "content" && (
+              <Button onClick={save} disabled={saving} size="sm">
+                {saving ? "در حال ذخیره..." : "ذخیره همه"}
+              </Button>
+            )}
             <Button
+              variant="ghost"
+              size="sm"
               onClick={async () => {
                 await fetch("/api/admin/logout", { method: "POST" });
                 router.replace("/admin/login");
                 router.refresh();
               }}
-              variant="ghost"
             >
               خروج
             </Button>
-            <Button onClick={save} disabled={saving}>
-              {saving ? "در حال ذخیره..." : "ذخیره همه"}
-            </Button>
           </div>
         </div>
+      </header>
 
+      <main className="mx-auto max-w-4xl px-4 sm:px-6 py-8">
+        {/* Dashboard */}
+        {view === "dashboard" && (
+          <div className="space-y-8">
+            <p className="text-muted-foreground text-center text-sm">
+              از منوی زیر بخش مورد نظر را انتخاب کنید.
+            </p>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <Card
+                className="group cursor-pointer border-2 transition-all hover:border-primary/50 hover:shadow-lg"
+                onClick={() => setView("content")}
+              >
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-4">
+                    <div className="rounded-xl bg-primary/10 p-3 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      <FileText className="h-8 w-8" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="font-bold text-lg text-foreground mb-1">ویرایش سایت و محتوا</h2>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        نام سایت، متن‌ها، تصاویر و لینک‌ها را تغییر دهید.
+                      </p>
+                      <Button variant="secondary" size="sm" className="gap-1 w-full sm:w-auto">
+                        ورود به ویرایش
+                        <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card
+                className="group cursor-pointer border-2 transition-all hover:border-primary/50 hover:shadow-lg"
+                onClick={() => { setView("messages"); loadMessages(); }}
+              >
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-4">
+                    <div className="rounded-xl bg-primary/10 p-3 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors relative">
+                      <MessageSquare className="h-8 w-8" />
+                      {messages.length > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-[1.25rem] h-5 px-1 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
+                          {messages.length}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="font-bold text-lg text-foreground mb-1">پیام‌های درخواست وقت</h2>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        پیام‌های ارسالی از فرم تماس را ببینید و مدیریت کنید.
+                      </p>
+                      <Button variant="secondary" size="sm" className="gap-1 w-full sm:w-auto">
+                        مشاهده پیام‌ها
+                        <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {/* Messages view */}
+        {view === "messages" && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
+              <h2 className="font-bold text-lg">پیام‌های تماس (درخواست وقت)</h2>
+              <Button variant="outline" size="sm" onClick={loadMessages} disabled={messagesLoading}>
+                {messagesLoading ? "در حال بارگذاری..." : "بروزرسانی"}
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {messagesLoading && messages.length === 0 ? (
+                <p className="text-muted-foreground text-sm py-8 text-center">در حال بارگذاری...</p>
+              ) : messages.length === 0 ? (
+                <p className="text-muted-foreground text-sm py-8 text-center">هنوز پیامی ارسال نشده است.</p>
+              ) : (
+                <div className="space-y-4 max-h-[65vh] overflow-y-auto">
+                  {messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className="border rounded-xl p-4 space-y-2 bg-muted/20 hover:bg-muted/30 transition-colors"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-semibold text-foreground">{msg.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground" dir="ltr">
+                            {new Date(msg.created_at).toLocaleString("fa-IR")}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => deleteMessage(msg.id)}
+                            title="حذف پیام"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <a
+                        href={`mailto:${msg.email}`}
+                        className="text-sm text-primary hover:underline block"
+                        dir="ltr"
+                      >
+                        {msg.email}
+                      </a>
+                      {msg.message ? (
+                        <p className="text-sm text-foreground whitespace-pre-wrap pt-2 border-t border-border mt-2">
+                          {msg.message}
+                        </p>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Content editor (accordion) */}
+        {view === "content" && (
         <Accordion type="multiple" className="w-full" defaultValue={["site"]}>
           {/* Site & Logo */}
           <AccordionItem value="site">
@@ -1240,56 +1397,9 @@ export default function AdminPage() {
           </AccordionItem>
 
           {/* Contact messages (درخواست وقت) */}
-          <AccordionItem value="messages">
-            <AccordionTrigger onClick={loadMessages}>پیام‌های تماس (درخواست وقت)</AccordionTrigger>
-            <AccordionContent>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <span>لیست پیام‌های ارسالی از فرم تماس</span>
-                  <Button variant="outline" size="sm" onClick={loadMessages} disabled={messagesLoading}>
-                    {messagesLoading ? "در حال بارگذاری..." : "بروزرسانی"}
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  {messagesLoading && messages.length === 0 ? (
-                    <p className="text-muted-foreground text-sm">در حال بارگذاری...</p>
-                  ) : messages.length === 0 ? (
-                    <p className="text-muted-foreground text-sm">هنوز پیامی ارسال نشده است.</p>
-                  ) : (
-                    <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-                      {messages.map((msg) => (
-                        <div
-                          key={msg.id}
-                          className="border rounded-lg p-4 space-y-2 bg-muted/30"
-                        >
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <span className="font-semibold text-foreground">{msg.name}</span>
-                            <span className="text-xs text-muted-foreground" dir="ltr">
-                              {new Date(msg.created_at).toLocaleString("fa-IR")}
-                            </span>
-                          </div>
-                          <a
-                            href={`mailto:${msg.email}`}
-                            className="text-sm text-primary hover:underline block"
-                            dir="ltr"
-                          >
-                            {msg.email}
-                          </a>
-                          {msg.message ? (
-                            <p className="text-sm text-foreground whitespace-pre-wrap pt-1 border-t border-border mt-2">
-                              {msg.message}
-                            </p>
-                          ) : null}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </AccordionContent>
-          </AccordionItem>
         </Accordion>
-      </div>
+        )}
+      </main>
     </div>
   );
 }
